@@ -1,6 +1,5 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-const bcrypt = require('bcryptjs');
 
 // User Registration
 exports.registerUser = async (req, res) => {
@@ -18,7 +17,7 @@ exports.registerUser = async (req, res) => {
 
     // Create JWT token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "30d", 
+      expiresIn: "30d",
     });
 
     res.status(201).json({
@@ -65,13 +64,41 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-password');
+    const users = await User.find().select("-password");
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
+exports.updateUserProfile = async (req, res) => {
+  const { name, oldPassword, newPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+
+    // Update name if provided
+    if (name) {
+      user.name = name;
+    }
+
+    // Handle password update
+    if (newPassword && oldPassword) {
+      const isMatch = await user.matchPassword(oldPassword);
+
+      if (!isMatch) {
+        return res.status(400).json({ message: "Old password is incorrect" });
+      }
+
+      user.password = newPassword;
+    }
+
+    await user.save();
+
+    res.json({ message: "Profile updated, please log in again." });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};

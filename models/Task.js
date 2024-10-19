@@ -24,7 +24,18 @@ const taskSchema = new mongoose.Schema(
     },
     assignee: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // Single assignee
+    },
+    sharedWith: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // Array of users with read-only access
+      },
+    ],
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
     checklist: {
       type: Array,
