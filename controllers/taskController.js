@@ -2,42 +2,54 @@ const Task = require("../models/Task");
 
 exports.getTasks = async (req, res) => {
   const { filter } = req.query;
-  let filterConditions = { assignee: req.user._id };
 
-  const today = new Date();
-  let startOfWeek, endOfWeek, startOfMonth, endOfMonth;
-
-  switch (filter) {
-    case "today":
-      filterConditions.dueDate = {
-        $gte: new Date(today.setHours(0, 0, 0, 0)),
-        $lte: new Date(today.setHours(23, 59, 59, 999)),
-      };
-      break;
-    case "thisWeek":
-      startOfWeek = today.setDate(today.getDate() - today.getDay());
-      endOfWeek = today.setDate(today.getDate() - today.getDay() + 6);
-      filterConditions.dueDate = {
-        $gte: new Date(startOfWeek),
-        $lte: new Date(endOfWeek),
-      };
-      break;
-    case "thisMonth":
-      startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      filterConditions.dueDate = {
-        $gte: startOfMonth,
-        $lte: endOfMonth,
-      };
-      break;
-    default:
-      break;
-  }
+  let filterConditions = {
+    $or: [
+      { assignee: req.user._id }, // Tasks assigned to the user
+      { creator: req.user._id }, // Tasks created by the user
+    ],
+  };
 
   try {
+    // due date filters 
+    const today = new Date();
+    let startOfWeek, endOfWeek, startOfMonth, endOfMonth;
+
+    switch (filter) {
+      case "today":
+        filterConditions.dueDate = {
+          $gte: new Date(today.setHours(0, 0, 0, 0)),
+          $lte: new Date(today.setHours(23, 59, 59, 999)),
+        };
+        break;
+      case "thisWeek":
+        startOfWeek = new Date(today.setDate(today.getDate() - today.getDay())); // Start of the week
+        endOfWeek = new Date(
+          today.setDate(today.getDate() - today.getDay() + 6)
+        ); // End of the week
+        filterConditions.dueDate = {
+          $gte: startOfWeek,
+          $lte: endOfWeek,
+        };
+        break;
+      case "thisMonth":
+        startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1); // Start of the month
+        endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0); // End of the month
+        filterConditions.dueDate = {
+          $gte: startOfMonth,
+          $lte: endOfMonth,
+        };
+        break;
+      default:
+        // No due date filter applied
+        break;
+    }
+
+    // Fetch tasks with the built filter conditions
     const tasks = await Task.find(filterConditions);
     res.status(200).json(tasks);
   } catch (error) {
+    console.error("Error fetching tasks:", error); // for debugging
     res.status(500).json({ message: "Server Error" });
   }
 };
