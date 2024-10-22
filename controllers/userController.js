@@ -74,7 +74,7 @@ exports.getUsers = async (req, res) => {
 };
 
 exports.updateUserProfile = async (req, res) => {
-  const { name, oldPassword, newPassword } = req.body;
+  const { name, email, oldPassword, newPassword } = req.body;
 
   try {
     const user = await User.findById(req.user._id);
@@ -84,12 +84,21 @@ exports.updateUserProfile = async (req, res) => {
       user.name = name;
     }
 
+    // Update email if provided and if it's different from the current one
+    if (email && email !== user.email) {
+      const emailExists = await User.findOne({ email });
+      if (emailExists) {
+        return res.status(400).json({ message: "Email already in use." });
+      }
+      user.email = email;
+    }
+
     // Handle password update
     if (newPassword && oldPassword) {
       const isMatch = await user.matchPassword(oldPassword);
 
       if (!isMatch) {
-        return res.status(400).json({ message: "Old password is incorrect" });
+        return res.status(400).json({ message: "Old password is incorrect." });
       }
 
       user.password = newPassword;
