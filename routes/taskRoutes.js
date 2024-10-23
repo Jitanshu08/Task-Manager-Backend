@@ -5,6 +5,7 @@ const {
   createTask,
   updateTask,
   deleteTask,
+  assignTaskToUser,
 } = require("../controllers/taskController");
 const auth = require("../middleware/authMiddleware");
 
@@ -19,5 +20,8 @@ router.put("/:id", auth, updateTask);
 
 // Delete a task (Private)
 router.delete("/:id", auth, deleteTask);
+
+// Task assignment route
+router.post("/assignTasks", auth, assignTaskToUser);
 
 module.exports = router;

@@ -1,17 +1,54 @@
 const Task = require("../models/Task");
+const User = require("../models/User");
+
+// Controller to assign task to user by email
+exports.assignTaskToUser = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Find all tasks created by the current user (the one adding the email)
+    const tasks = await Task.find({ creator: req.user._id });
+
+    if (!tasks.length) {
+      return res.status(404).json({ message: "No tasks found to assign" });
+    }
+
+    // Loop through each task and add the user to the sharedWith array
+    for (let task of tasks) {
+      if (!task.sharedWith.includes(user._id)) {
+        task.sharedWith.push(user._id);
+        await task.save();
+      }
+    }
+
+    res
+      .status(200)
+      .json({ message: `${email} assigned to all tasks successfully` });
+  } catch (error) {
+    console.error("Error assigning tasks:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 exports.getTasks = async (req, res) => {
   const { filter } = req.query;
 
   let filterConditions = {
     $or: [
-      { assignee: req.user._id }, // Tasks assigned to the user
-      { creator: req.user._id }, // Tasks created by the user
+      { assignee: req.user._id }, 
+      { creator: req.user._id }, 
+      { sharedWith: req.user._id }, 
     ],
   };
 
   try {
-    // due date filters 
     const today = new Date();
     let startOfWeek, endOfWeek, startOfMonth, endOfMonth;
 
@@ -45,11 +82,11 @@ exports.getTasks = async (req, res) => {
         break;
     }
 
-    // Fetch tasks with the built filter conditions
+    // Fetch tasks with the filter conditions
     const tasks = await Task.find(filterConditions);
     res.status(200).json(tasks);
   } catch (error) {
-    console.error("Error fetching tasks:", error); // for debugging
+    console.error("Error fetching tasks:", error);
     res.status(500).json({ message: "Server Error" });
   }
 };

@@ -73,6 +73,21 @@ exports.getUsers = async (req, res) => {
   }
 };
 
+// Fetch the logged-in user's profile
+exports.getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+
 exports.updateUserProfile = async (req, res) => {
   const { name, email, oldPassword, newPassword } = req.body;
 
