@@ -1,34 +1,45 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
-const cors = require('cors');
+const express = require("express");
+const dotenv = require("dotenv");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
 // Load environment variables
 dotenv.config();
 
 // Import routes
-const userRoutes = require('./routes/userRoutes');
-const taskRoutes = require('./routes/taskRoutes.js');
+const userRoutes = require("./routes/userRoutes");
+const taskRoutes = require("./routes/taskRoutes.js");
 
 // Initialize express app
 const app = express();
 
 // Middleware
 app.use(express.json()); // For parsing JSON
-app.use(cors()); // Enable CORS
+
+// Enable CORS with dynamic origin (handle both local and production)
+app.use(
+  cors({
+    origin: [
+      "https://web-story-frontend-seven.vercel.app",
+      "http://localhost:5173",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
 // Database connection
-const connectDB = require('./config/db');
+const connectDB = require("./config/db");
 connectDB();
 
 // Routes
-app.use('/api/users', userRoutes);
-app.use('/api/tasks', taskRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/tasks", taskRoutes);
 
 // Error handling (can be expanded later)
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send({ message: 'Server Error' });
+  res.status(500).send({ message: "Server Error" });
 });
 
 // Define the PORT
