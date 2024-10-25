@@ -20,7 +20,7 @@ app.use(express.json()); // For parsing JSON
 app.use(
   cors({
     origin: [
-      "https://web-story-frontend-seven.vercel.app",
+      "https://task-manager-frontend-ih9lr5uzr-jitanshu-shaws-projects.vercel.app",
       "http://localhost:5173",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
