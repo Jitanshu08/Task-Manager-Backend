@@ -6,11 +6,15 @@ const {
   updateTask,
   deleteTask,
   assignTaskToUser,
+  getTaskById
 } = require("../controllers/taskController");
 const auth = require("../middleware/authMiddleware");
 
 // Get all tasks (Private)
 router.get("/", auth, getTasks);
+
+// Get a single task by ID (Public)
+router.get("/:id", getTaskById);
 
 // Create a new task (Private)
 router.post("/", auth, createTask);

@@ -37,6 +37,21 @@ exports.assignTaskToUser = async (req, res) => {
   }
 };
 
+exports.getTaskById = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res.json(task);
+  } catch (error) {
+    console.error("Error fetching task by ID:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 exports.getTasks = async (req, res) => {
   const { filter } = req.query;
 
