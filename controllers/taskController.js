@@ -6,7 +6,6 @@ exports.assignTaskToUser = async (req, res) => {
   const { email } = req.body;
 
   try {
-
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -57,9 +56,9 @@ exports.getTasks = async (req, res) => {
 
   let filterConditions = {
     $or: [
-      { assignee: req.user._id }, 
-      { creator: req.user._id }, 
-      { sharedWith: req.user._id }, 
+      { assignee: req.user._id },
+      { creator: req.user._id },
+      { sharedWith: req.user._id },
     ],
   };
 
@@ -97,8 +96,11 @@ exports.getTasks = async (req, res) => {
         break;
     }
 
-    // Fetch tasks with the filter conditions
-    const tasks = await Task.find(filterConditions);
+    // Fetch tasks with the filter conditions, populate the assignee's email
+    const tasks = await Task.find(filterConditions).populate(
+      "assignee",
+      "email"
+    );
     res.status(200).json(tasks);
   } catch (error) {
     console.error("Error fetching tasks:", error);
